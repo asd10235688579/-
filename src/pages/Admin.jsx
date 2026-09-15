@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   getAllNotes,
+  getNote,
   createNote,
   updateNote,
   deleteNote,
@@ -259,7 +260,17 @@ export default function Admin() {
                       </button>
                     </td>
                     <td>
-                      <button className="btn btn-ghost" onClick={() => setEditing(n)}>
+                      <button
+                        className="btn btn-ghost"
+                        onClick={async () => {
+                          try {
+                            const full = await getNote(n.id)
+                            setEditing(full)
+                          } catch (e) {
+                            setError(e.message)
+                          }
+                        }}
+                      >
                         编辑
                       </button>
                       <button className="btn btn-danger" onClick={() => remove(n)}>
