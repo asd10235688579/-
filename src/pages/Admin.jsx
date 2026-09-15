@@ -12,6 +12,7 @@ import {
 import { signOut } from '../lib/auth'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import AttachmentUploader from '../components/AttachmentUploader'
+import { textToMarkdown } from '../lib/markdown'
 import { DEFAULT_SITE_CONTENT } from '../lib/config'
 
 const emptyNote = { title: '', summary: '', tags: [], content: '', public: false }
@@ -40,6 +41,9 @@ function NoteEditor({ note, onSaved, onCancel }) {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
+  // 正文预览/保存前:纯文本自动转换为 Markdown
+  const mdContent = textToMarkdown(form.content)
+
   async function save() {
     setBusy(true)
     setError('')
@@ -47,7 +51,7 @@ function NoteEditor({ note, onSaved, onCancel }) {
       const patch = {
         title: form.title.trim(),
         summary: form.summary.trim(),
-        content: form.content,
+        content: mdContent,
         tags: form.tags,
         public: form.public,
       }
@@ -89,13 +93,12 @@ function NoteEditor({ note, onSaved, onCancel }) {
         公开(访客可见)
       </label>
       <label>
-        正文(Markdown)
+        正文(直接打字,回车换行即可;已有格式自动保留)
         <textarea
-          className="code-area"
           value={form.content}
           onChange={set('content')}
           rows={18}
-          placeholder={'支持 Markdown:标题、代码、链接、图片、音频。\n\n图片/音频先在上方上传,再插入对应语法:![图片](attachments=文件名)\n<audio src="attachments=文件名"></audio>'}
+          placeholder={'直接输入正文,正常的标点符号与回车换行即可,保存/预览时自动转换成格式。\n\n支持自动识别:标题(# 开头)、列表、引用、代码块、链接、图片、音频。\n图片/音频可用上方按钮一键插入。'}
         />
       </label>
       <AttachmentUploader
@@ -103,7 +106,7 @@ function NoteEditor({ note, onSaved, onCancel }) {
       />
       <h3>预览</h3>
       <div className="preview">
-        <MarkdownRenderer content={form.content} />
+        <MarkdownRenderer content={mdContent} />
       </div>
       {error && <p className="form-error">{error}</p>}
       <div className="editor-actions">
